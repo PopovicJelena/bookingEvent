@@ -26,14 +26,14 @@ function App() {
       <AuthContext.Provider value={{token, userId, login, logout}}>
         <MainNavigation />
         <main className="main-content">
-        <Switch>
-          {token && <Redirect from="/" to="/events" exact />}
-          {token && <Redirect from="/auth" to="/events" exact />}
-          {!token && <Route path='/auth' component={AuthPage}/>}
-          <Route path='/booking' component={BookingPage}/>
-          {token && <Route path='/events' component={EventsPage}/>}
-          {!token && <Redirect to='/auth' exact />}
-        </Switch>
+          <Switch>
+            {token && <Redirect from="/" to="/events" exact />}
+            {token && <Redirect from="/auth" to="/events" exact />}
+            {!token && <Route path='/auth' component={AuthPage}/>}
+            <Route path='/events' component={EventsPage}/>
+            {token && <Route path='/booking' component={BookingPage}/>}
+            {!token && <Redirect to='/auth' exact />}
+          </Switch>
         </main>
       </AuthContext.Provider>
     </Router>
