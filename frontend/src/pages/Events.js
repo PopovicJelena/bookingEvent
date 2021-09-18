@@ -1,4 +1,4 @@
-import React, {useState, useRef, useContext, useEffect, useCallback} from 'react'
+import React, {useState, useRef, useContext, useEffect} from 'react'
 import Modal from '../components/Modal/Modal'
 import Backdrop from '../components/Backdrop/Backdrop'
 import './Events.css'
@@ -13,13 +13,14 @@ function EventsPage() {
     const [selectedEvent, setSelectedEvent] = useState(null)
 
     const context = useContext(AuthContext)
+    const isActive = useRef(true)
 
     const titleRef = useRef(null)
     const priceRef = useRef(null)
     const dateRef = useRef(null)
     const descriptionRef = useRef(null)
 
-    const fetchEvents = useCallback(() => {
+    const fetchEvents = () => {
         setisLoading(true)
         const requestBody = {
             query: `
@@ -54,18 +55,22 @@ function EventsPage() {
         })
         .then(resData => {
             const events = resData.data.events
-            setEvents(events)
-            setisLoading(false)
+            if(isActive) {
+                setEvents(events)
+                setisLoading(false)
+            }
         })
         .catch(err => {
             console.log(err)
-            setisLoading(false)
+            if(isActive) {
+                setisLoading(false)
+            }
         })
-    }, [])
+    }
 
     useEffect(() => {
         fetchEvents()
-    }, [fetchEvents])
+    }, [])
 
     const createEventHandler = () => {
         setCreateEvent(true)
@@ -150,7 +155,52 @@ function EventsPage() {
         setSelectedEvent(chosenEvent)
     }
 
-    const bookEventHandler = () => {}
+    const bookEventHandler = () => {
+         if (!context.token) {
+            setSelectedEvent(null)
+            return
+        }
+        const requestBody = {
+            query: `
+                mutation {
+                    bookEvent(eventId: "${selectedEvent._id}") {
+                        _id
+                        createdAt
+                        updatedAt
+                    }
+                }
+            `
+        }
+                 
+        fetch('http://localhost:8000/graphql', {
+            method: 'POST',
+            body: JSON.stringify(requestBody),
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + context.token
+            }
+        })
+        .then(res => {
+            if (res.status !== 200 && res.status !== 201) {
+            throw new Error('Failed!')
+            }
+            return res.json()
+        })
+        .then(resData => {
+            console.log(resData)
+            setSelectedEvent(null)            
+        })
+        .catch(err => {
+            console.log(err)
+        })
+
+    }
+
+    useEffect(() => {
+        return () => {
+            isActive.current = false
+        }
+    }, [])
 
     return (
         <>
@@ -186,7 +236,7 @@ function EventsPage() {
             canConfirm
             onCancel={modalCancelHandler}
             onConfirm={bookEventHandler}
-            confirmText = "Book"
+            confirmText = {context.token ? 'Book' : 'Confirm'}
         >
             <h1>{selectedEvent.title}</h1>
             <h2>

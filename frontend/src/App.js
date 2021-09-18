@@ -31,7 +31,7 @@ function App() {
             {token && <Redirect from="/auth" to="/events" exact />}
             {!token && <Route path='/auth' component={AuthPage}/>}
             <Route path='/events' component={EventsPage}/>
-            {token && <Route path='/booking' component={BookingPage}/>}
+            {token && <Route path='/bookings' component={BookingPage}/>}
             {!token && <Redirect to='/auth' exact />}
           </Switch>
         </main>
