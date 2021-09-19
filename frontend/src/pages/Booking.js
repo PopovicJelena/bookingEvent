@@ -1,6 +1,7 @@
 import React, {useState, useContext, useEffect} from 'react'
 import { AuthContext } from '../context/authContext'
 import Spinner from '../components/Spinner/Spinner'
+import BookingList from '../components/Bookings/BookingList/BookingList'
 
 function BookingPage() {
     const [isLoading, setisLoading] = useState(false)
@@ -51,22 +52,54 @@ function BookingPage() {
         })
     }
 
+    const deleteBookingHandler = (bookingId) => {
+        setisLoading(true)
+        const requestBody = {
+        query: `
+            mutation {
+                cancelBooking(bookingId: "${bookingId}") {
+                    _id
+                    title
+                }
+            }
+            `
+        }
+
+        fetch('http://localhost:8000/graphql', {
+            method: 'POST',
+            body: JSON.stringify(requestBody),
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: 'Bearer ' + context.token
+            }
+        })
+        .then(res => {
+            if (res.status !== 200 && res.status !== 201) {
+                throw new Error('Failed!')
+            }
+            return res.json()
+        })
+        .then(resData => {
+            console.log(resData);
+            const updatedBookings = bookings.filter(booking => {
+                return booking._id !== bookingId
+            })
+            setBookings(updatedBookings)
+            setisLoading(false)
+        })
+        .catch(err => {
+            console.log(err)
+            setisLoading(false)
+        })        
+    }
+
     useEffect(() => {
         fetchBookings()
     }, [])
 
     return (
         <>
-            {isLoading ? (<Spinner/>) : (
-            <ul>
-                {bookings.map(booking => {
-                    return <li key={booking._id}>
-                        {booking.event.title} -
-                        {new Date(booking.createdAt).toLocaleDateString()}
-                    </li>
-                })}
-            </ul>
-            )}
+            {isLoading ? <Spinner/> : <BookingList bookings={bookings} onDelete={deleteBookingHandler}/>}
         </>
     )
 }
