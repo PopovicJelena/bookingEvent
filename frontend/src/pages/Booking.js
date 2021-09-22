@@ -2,10 +2,13 @@ import React, {useState, useContext, useEffect} from 'react'
 import { AuthContext } from '../context/authContext'
 import Spinner from '../components/Spinner/Spinner'
 import BookingList from '../components/Bookings/BookingList/BookingList'
+import BookingChart from '../components/Bookings/BookingChart/BookingChart'
+import BookingControls from '../components/Bookings/BookingControls/BookingControls'
 
 function BookingPage() {
     const [isLoading, setisLoading] = useState(false)
     const [bookings, setBookings] = useState([])
+    const [outputType, setOutputType] = useState('list')
     const context = useContext(AuthContext)
 
     const fetchBookings = () => {
@@ -20,6 +23,7 @@ function BookingPage() {
                         _id
                         title
                         date
+                        price
                     }
                 }
             }
@@ -31,7 +35,7 @@ function BookingPage() {
             body: JSON.stringify(requestBody),
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + context.token
+                Authorization: 'Bearer ' + context.token
             }
         })
         .then(res => {
@@ -97,10 +101,39 @@ function BookingPage() {
         fetchBookings()
     }, [])
 
+    const changeOutputTypeHandler = (outputType) => {
+        if (outputType === 'list') {
+        setOutputType('list')
+        } else {
+        setOutputType('chart')
+        }
+    }
+
+    let content = <Spinner />
+    if (!isLoading) {
+        content = (
+            <>
+                <div>
+                    <BookingControls
+                        activeOutputType={outputType}
+                        onChange={changeOutputTypeHandler}
+                    />
+                </div>
+                <div>
+                    {outputType === 'list' ? (
+                    <BookingList
+                        bookings={bookings}
+                        onDelete={deleteBookingHandler}
+                    />
+                    ) : (
+                    <BookingChart bookings={bookings} />
+                    )}
+                </div>
+            </>
+        )
+    }
     return (
-        <>
-            {isLoading ? <Spinner/> : <BookingList bookings={bookings} onDelete={deleteBookingHandler}/>}
-        </>
+        <>{content}</>
     )
 }
 
