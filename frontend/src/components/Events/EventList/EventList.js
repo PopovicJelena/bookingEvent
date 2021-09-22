@@ -1,6 +1,6 @@
 import React from 'react'
-import './EventList.css'
 import EventItem from './EventItem/EventItem'
+import './EventList.css'
 
 function EventList(props) {
     const events = props.events.map(event => {
@@ -17,7 +17,7 @@ function EventList(props) {
         />
         )
     })
-    return <ul className="events__list">{events}</ul>
+    return <ul className="event__list">{events}</ul>
 }
 
 export default EventList
